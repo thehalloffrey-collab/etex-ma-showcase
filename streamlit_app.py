@@ -941,6 +941,57 @@ with tabs[4]:
     })
     st.dataframe(risks, hide_index=True, use_container_width=True)
 
+    st.divider()
+    st.markdown("#### Currency Sensitivity — Altona FX Exposure  *(AUD $000s)*")
+    st.caption("Impact on Altona P&L and Etex Group EUR reporting | Base rate: AUD/EUR 1.7523")
+
+    # AUD/EUR live from slider — compute revenue impact of ±5% / ±10% moves
+    base_rev   = sum(REV_FCST_BASE)   # H2 AUD revenue base
+    base_eur   = base_rev / aud_eur   # H2 EUR equivalent
+
+    eur_weak_10  =  base_rev / (aud_eur * 0.90) - base_eur   # EUR weakens 10% → AUD buys more EUR
+    eur_weak_5   =  base_rev / (aud_eur * 0.95) - base_eur
+    eur_str_5    =  base_rev / (aud_eur * 1.05) - base_eur
+    eur_str_10   =  base_rev / (aud_eur * 1.10) - base_eur
+
+    def fxfmt(v):
+        return f"(€{abs(v):,.0f}K)" if v < 0 else f"+€{v:,.0f}K"
+
+    fx_data = pd.DataFrame({
+        'Currency':           ['AUD (primary)', 'USD (indirect)', 'EUR (group reporting)'],
+        'Exposure Type':      ['DIRECT — all Altona revenue, costs & assets',
+                               'INDIRECT — some RM imports priced in USD',
+                               'TRANSLATION — Etex consolidates AUD→EUR'],
+        'EUR Weakens 10%':    [fxfmt(eur_weak_10), '—', fxfmt(-eur_weak_10 * 0.12)],
+        'EUR Weakens 5%':     [fxfmt(eur_weak_5),  '—', fxfmt(-eur_weak_5  * 0.12)],
+        'EUR Strengthens 5%': [fxfmt(eur_str_5),   '—', fxfmt(-eur_str_5   * 0.12)],
+        'EUR Strengthens 10%':[fxfmt(eur_str_10),  '—', fxfmt(-eur_str_10  * 0.12)],
+        'Significance to Altona': [
+            f'±AUD {base_rev*0.05/1000:.1f}M revenue on ±5% AUD/EUR move',
+            'Approx. 8–12% of RM cost base — partially hedged via forward contracts',
+            f'H2 base = €{base_eur:,.0f}K reported to Brussels',
+        ],
+    })
+    st.dataframe(fx_data, hide_index=True, use_container_width=True,
+                 column_config={
+                     'Exposure Type':       st.column_config.TextColumn('Exposure Type', width=260),
+                     'Significance to Altona': st.column_config.TextColumn('Significance to Altona', width=280),
+                 })
+
+    st.markdown(
+        f"<div style='background:{C_LIGHT};border-left:3px solid {C_ORANGE};"
+        f"padding:10px 14px;border-radius:4px;margin-top:6px;font-size:0.80rem;color:{C_BODY};'>"
+        f"<strong>Live FX sensitivity (slider-linked):</strong> At current AUD/EUR {aud_eur:.4f}, "
+        f"H2 Altona revenue = <strong>€{base_eur:,.0f}K</strong> reported to Etex Group Brussels. "
+        f"A <strong>5% EUR weakening</strong> improves group-reported revenue by "
+        f"<strong>{fxfmt(eur_weak_5)}</strong>. "
+        f"A <strong>5% EUR strengthening</strong> reduces it by "
+        f"<strong>{fxfmt(abs(eur_str_5))} </strong>. "
+        f"Adjust the AUD/EUR slider in the sidebar to see live impact."
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
 # ════════════════════════════════════════════════════════════════════════════
 # TAB 6 — MONTH-END CLOSE
 # ════════════════════════════════════════════════════════════════════════════
