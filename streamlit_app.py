@@ -814,6 +814,7 @@ with tabs[3]:
         legend=dict(orientation='h', y=1.08, x=0),
     )
     fig_bgc.update_layout(margin=dict(l=160, r=0, t=40, b=0))
+    c1, c2 = st.columns(2)
     with c1:
         st.plotly_chart(fig_bgc, use_container_width=True)
 
